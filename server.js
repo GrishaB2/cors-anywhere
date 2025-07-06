@@ -6,7 +6,7 @@ var port = process.env.PORT || 8080;
 var originBlacklist = [];
 // Тут надо указать разрешённые origin, например, ваш сайт в punycode:
 // для "истрарккпрф.рф" будет "https://xn--80akdjffldm5a.xn--p1ai"
-var originWhitelist = ['https://xn--80akdjffldm5a.xn--p1ai'];
+var originWhitelist = [];
 
 // Модуль для ограничения частоты запросов
 var checkRateLimit = require('./lib/rate-limit')(process.env.CORSANYWHERE_RATELIMIT);
@@ -17,7 +17,7 @@ cors_proxy.createServer({
   originBlacklist: originBlacklist,
   originWhitelist: originWhitelist,
   // Указываем заголовки, которые должны быть у запросов, чтобы прокси их пропускал
-  requireHeader: ['origin', 'x-requested-with'],
+  requireHeader: [],
   checkRateLimit: checkRateLimit,
   removeHeaders: [
     'cookie',
