@@ -1,47 +1,35 @@
-// Listen on a specific host via the HOST environment variable
+// Хост и порт
 var host = process.env.HOST || '0.0.0.0';
-// Listen on a specific port via the PORT environment variable
 var port = process.env.PORT || 8080;
 
-// Grab the blacklist from the command-line so that we can update the blacklist without deploying
-// again. CORS Anywhere is open by design, and this blacklist is not used, except for countering
-// immediate abuse (e.g. denial of service). If you want to block all origins except for some,
-// use originWhitelist instead.
+// Чёрный и белый списки origin (домены с которых разрешены запросы к прокси)
 var originBlacklist = [];
-var originWhitelist = [];
-function parseEnvList(env) {
-  if (!env) {
-    return [];
-  }
-  return env.split(',');
-}
+// Тут надо указать разрешённые origin, например, ваш сайт в punycode:
+// для "истрарккпрф.рф" будет "https://xn--80akdjffldm5a.xn--p1ai"
+var originWhitelist = ['https://xn--80akdjffldm5a.xn--p1ai'];
 
-// Set up rate-limiting to avoid abuse of the public CORS Anywhere server.
+// Модуль для ограничения частоты запросов
 var checkRateLimit = require('./lib/rate-limit')(process.env.CORSANYWHERE_RATELIMIT);
 
 var cors_proxy = require('./lib/cors-anywhere');
+
 cors_proxy.createServer({
   originBlacklist: originBlacklist,
   originWhitelist: originWhitelist,
-  requireHeader: [],
+  // Указываем заголовки, которые должны быть у запросов, чтобы прокси их пропускал
+  requireHeader: ['origin', 'x-requested-with'],
   checkRateLimit: checkRateLimit,
   removeHeaders: [
     'cookie',
     'cookie2',
-    // Strip Heroku-specific headers
     'x-request-start',
     'x-request-id',
     'via',
     'connect-time',
     'total-route-time',
-    // Other Heroku added debug headers
-    // 'x-forwarded-for',
-    // 'x-forwarded-proto',
-    // 'x-forwarded-port',
   ],
   redirectSameOrigin: true,
   httpProxyOptions: {
-    // Do not add X-Forwarded-For, etc. headers, because Heroku already adds it.
     xfwd: false,
   },
 }).listen(port, host, function() {
